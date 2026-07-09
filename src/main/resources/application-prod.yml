@@ -1,0 +1,26 @@
+# ════════════════════════════════════════════════════════════════════════════════
+# ROVIA API — Perfil: PRODUÇÃO
+# ════════════════════════════════════════════════════════════════════════════════
+
+spring:
+  jpa:
+    show-sql: false
+
+# Desabilita Swagger em produção
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    com.rovia: WARN
+    root: ERROR
+  file:
+    name: /var/log/rovia/api.log
+
+management:
+  endpoint:
+    health:
+      show-details: never

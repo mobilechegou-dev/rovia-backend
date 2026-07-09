@@ -1,0 +1,29 @@
+# ════════════════════════════════════════════════════════════════════════════════
+# ROVIA API — Perfil: DESENVOLVIMENTO
+# ════════════════════════════════════════════════════════════════════════════════
+
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Em dev, habilita o pgadmin no docker-compose
+  docker:
+    compose:
+      enabled: false
+
+logging:
+  level:
+    com.rovia: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+
+springdoc:
+  swagger-ui:
+    try-it-out-enabled: true
+
+# Desabilita cache em dev para facilitar testes
+spring.cache.type: none

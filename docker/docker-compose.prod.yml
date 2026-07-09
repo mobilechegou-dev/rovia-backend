@@ -1,0 +1,96 @@
+# ════════════════════════════════════════════════════════════════════════════════
+# ROVIA — Docker Compose: Produção
+# ════════════════════════════════════════════════════════════════════════════════
+# ATENÇÃO: variáveis de ambiente NUNCA devem ter valores default em produção.
+# Sempre injete via .env ou secrets do orquestrador (Kubernetes, ECS, etc).
+# Uso: docker compose -f docker/docker-compose.prod.yml up -d
+
+name: rovia-prod
+
+services:
+
+  # ─── API Spring Boot ───────────────────────────────────────────────────────
+  api:
+    image: rovia/api:${APP_VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: rovia_api
+    restart: always
+    env_file:
+      - ../.env.production
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - rovia_prod_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: rovia_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rovia_prod_network
+    # Sem exposição de porta em produção — acesso apenas interno
+
+  redis:
+    image: redis:7-alpine
+    container_name: rovia_redis_prod
+    restart: always
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --save 60 1000
+    volumes:
+      - redis_prod_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rovia_prod_network
+
+volumes:
+  postgres_prod_data:
+    name: rovia_postgres_prod
+  redis_prod_data:
+    name: rovia_redis_prod
+
+networks:
+  rovia_prod_network:
+    name: rovia_prod_network
+    driver: bridge

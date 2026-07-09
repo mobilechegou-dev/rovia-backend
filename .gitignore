@@ -1,0 +1,29 @@
+# ─── Build ────────────────────────────────────────────────────────────────────
+target/
+*.jar
+*.war
+*.class
+
+# ─── Secrets — NUNCA COMITAR ──────────────────────────────────────────────────
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+*.pem
+*.key
+*credentials*
+firebase-credentials.json
+
+# ─── IDE ──────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.DS_Store
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+docker-compose.override.yml
